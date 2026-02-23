@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jaga Dirimu Online – Game Edukasi Cyberbullying</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #e8f4fd;
+    --blue: #3b82f6;
+    --blue-dark: #1d4ed8;
+    --teal: #14b8a6;
+    --teal-dark: #0f766e;
+    --green: #22c55e;
+    --green-dark: #15803d;
+    --yellow: #fbbf24;
+    --red: #ef4444;
+    --red-light: #fee2e2;
+    --purple: #8b5cf6;
+    --soft: #f0f9ff;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --radius: 20px;
+    --shadow: 0 8px 32px rgba(59,130,246,0.13);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(160deg, #dbeafe 0%, #e0f2fe 40%, #ccfbf1 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  #game-container {
+    width: 100%;
+    max-width: 420px;
+    min-height: 600px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.08); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
+    100% { box-shadow: 0 0 0 20px rgba(59,130,246,0); }
+  }
+
+  /* ===== CARD BASE ===== */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--blue), var(--teal));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  /* ===== HUD ===== */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 10px 16px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .hud-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .hud-icon { font-size: 1.2rem; }
+  .hearts { color: #ef4444; }
+  .score-val { color: var(--blue); }
+  .stage-val { color: var(--teal); }
+
+  /* ===== INTRO SCREEN ===== */
+  .intro-hero {
+    text-align: center;
+    padding: 8px 0 20px;
+  }
+  .intro-emoji {
+    font-size: 5rem;
+    animation: float 3s ease-in-out infinite;
+    display: block;
+    margin-bottom: 12px;
+  }
+  .intro-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--blue-dark);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .intro-sub {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+  .badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    background: var(--soft);
+    border: 2px solid var(--blue);
+    color: var(--blue-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 50px;
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    text-align: center;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: white;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 24px rgba(59,130,246,0.5); }
+  .btn-choice {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    background: white;
+    border: 2.5px solid #e2e8f0;
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s;
+    line-height: 1.4;
+  }
+  .btn-choice:hover { border-color: var(--blue); background: #eff6ff; transform: translateY(-1px); }
+  .btn-choice.correct { border-color: var(--green); background: #f0fdf4; color: var(--green-dark); animation: pop 0.3s ease; }
+  .btn-choice.wrong { border-color: var(--red); background: var(--red-light); color: var(--red); animation: shake 0.4s ease; }
+  .btn-choice.disabled { pointer-events: none; opacity: 0.6; }
+  .btn-secondary {
+    background: white;
+    color: var(--blue);
+    border: 2.5px solid var(--blue);
+    box-shadow: none;
+  }
+  .btn-small {
+    width: auto;
+    display: inline-block;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+  }
+
+  /* ===== SCENARIO CARD ===== */
+  .scenario-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .scenario-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px var(--blue);
+  }
+  .scenario-meta { flex: 1; }
+  .scenario-name { font-weight: 800; font-size: 1rem; color: var(--text); }
+  .scenario-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #dbeafe;
+    color: var(--blue-dark);
+    padding: 2px 10px;
+    border-radius: 50px;
+    display: inline-block;
+  }
+  .scenario-tag.danger { background: var(--red-light); color: var(--red); }
+  .scenario-tag.warning { background: #fef9c3; color: #854d0e; }
+
+  .chat-bubble {
+    background: #f1f5f9;
+    border-radius: 4px 16px 16px 16px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--text);
+    border-left: 3px solid var(--blue);
+  }
+  .chat-bubble.bad {
+    background: #fff1f2;
+    border-left-color: var(--red);
+  }
+
+  .question-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+
+  /* ===== FEEDBACK ===== */
+  .feedback-box {
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 12px;
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback-box.correct { background: #f0fdf4; border: 2px solid var(--green); }
+  .feedback-box.wrong { background: var(--red-light); border: 2px solid var(--red); }
+  .feedback-box.show { display: block; }
+  .feedback-title {
+    font-weight: 900;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .feedback-title.correct { color: var(--green-dark); }
+  .feedback-title.wrong { color: var(--red); }
+  .feedback-text { font-size: 0.88rem; line-height: 1.5; color: var(--text); }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-bar-wrap {
+    background: #e2e8f0;
+    border-radius: 50px;
+    height: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, var(--blue), var(--teal));
+    transition: width 0.5s ease;
+  }
+
+  /* ===== TIPS SCREEN ===== */
+  .tip-card {
+    background: linear-gradient(135deg, #eff6ff, #f0fdfa);
+    border: 2px solid #bfdbfe;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    animation: fadeIn 0.4s ease;
+  }
+  .tip-icon { font-size: 2rem; flex-shrink: 0; }
+  .tip-content {}
+  .tip-title { font-weight: 800; color: var(--blue-dark); margin-bottom: 4px; }
+  .tip-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+
+  /* ===== RESULTS ===== */
+  .result-emoji {
+    font-size: 4rem;
+    display: block;
+    text-align: center;
+    margin-bottom: 12px;
+    animation: pop 0.5s ease;
+  }
+  .result-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .result-score-box {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    color: white;
+    margin: 16px 0;
+  }
+  .result-score-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem;
+    display: block;
+  }
+  .result-score-label { font-size: 0.9rem; opacity: 0.85; }
+  .stars {
+    text-align: center;
+    font-size: 2rem;
+    margin: 8px 0;
+    letter-spacing: 4px;
+  }
+  .fact-strip {
+    background: #fef9c3;
+    border: 2px solid #fde047;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    color: #713f12;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  /* ===== CHAPTER INTRO ===== */
+  .chapter-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 4px 14px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+  }
+  .chapter-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .chapter-desc {
+    color: var(--muted);
+    font-size: 0.93rem;
+    line-height: 1.55;
+    margin-bottom: 20px;
+  }
+  .chapter-icon {
+    text-align: center;
+    font-size: 4rem;
+    margin-bottom: 16px;
+    animation: float 2.5s ease-in-out infinite;
+  }
+
+  /* Decorative blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+
+  <!-- ===== INTRO SCREEN ===== -->
+  <div id="screen-intro" class="screen active card">
+    <div class="blob" style="width:200px;height:200px;background:var(--blue);top:-60px;right:-60px;"></div>
+    <div class="intro-hero">
+      <span class="intro-emoji">🛡️</span>
+      <div class="intro-title">Jaga Dirimu<br>Online!</div>
+      <p class="intro-sub">Game edukasi interaktif untuk memahami cyberbullying dan cara melindungi dirimu di dunia digital.</p>
+      <div class="badge-row">
+        <span class="badge">🎮 3 Babak</span>
+        <span class="badge">📚 Edukasi</span>
+        <span class="badge">💙 Anti-Bullying</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">Mulai Petualangan! 🚀</button>
+    <div style="height:12px"></div>
+    <button class="btn btn-secondary" onclick="showTips()">Lihat Tips Keamanan 🔒</button>
+  </div>
+
+  <!-- ===== TIPS SCREEN ===== -->
+  <div id="screen-tips" class="screen card">
+    <h2 style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--blue-dark);margin-bottom:16px;">🔒 Tips Aman Online</h2>
+    <div class="tip-card">
+      <div class="tip-icon">🤐</div>
+      <div class="tip-content">
+        <div class="tip-title">Jangan Bagikan Informasi Pribadi</div>
+        <div class="tip-desc">Nomor HP, alamat rumah, dan nama sekolahmu hanya untuk orang yang kamu percaya di dunia nyata.</div>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">🚫</div>
+      <div class="tip-content">
+        <div class="tip-title">Blokir & Laporkan Pelaku</div>
+        <div class="tip-desc">Kamu berhak memblokir siapa pun yang membuatmu tidak nyaman. Gunakan fitur "Laporkan" di media sosial.</div>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">💬</div>
+      <div class="tip-content">
+        <div class="tip-title">Ceritakan kepada Orang Dewasa</div>
+        <div class="tip-desc">Jika kamu mengalami cyberbullying, ceritakan kepada orang tua, guru, atau orang dewasa yang kamu percaya.</div>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">📸</div>
+      <div class="tip-content">
+        <div class="tip-title">Simpan Bukti</div>
+        <div class="tip-desc">Screenshot percakapan atau konten yang menyakitimu sebagai bukti jika kamu perlu melapor.</div>
+      </div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-icon">❤️</div>
+      <div class="tip-content">
+        <div class="tip-title">Kamu Tidak Sendirian</div>
+        <div class="tip-desc">Cyberbullying bukan salahmu. Banyak orang siap membantumu. Jangan malu untuk meminta bantuan.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showScreen('screen-intro')" style="margin-top:8px;">← Kembali</button>
+  </div>
+
+  <!-- ===== CHAPTER INTRO SCREEN ===== -->
+  <div id="screen-chapter" class="screen card">
+    <div id="chapter-content"></div>
+    <button class="btn btn-primary" id="chapter-btn">Siap! →</button>
+  </div>
+
+  <!-- ===== QUESTION SCREEN ===== -->
+  <div id="screen-question" class="screen">
+    <div class="hud">
+      <div class="hud-item"><span class="hud-icon">❤️</span><span class="hearts" id="hud-hearts">♥♥♥</span></div>
+      <div class="hud-item"><span class="hud-icon">⭐</span><span class="score-val" id="hud-score">0</span></div>
+      <div class="hud-item"><span class="hud-icon">📖</span><span class="stage-val" id="hud-stage">1/9</span></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="card" id="question-card">
+      <div class="scenario-header">
+        <div class="scenario-avatar" id="q-avatar"></div>
+        <div class="scenario-meta">
+          <div class="scenario-name" id="q-name"></div>
+          <div class="scenario-tag" id="q-tag"></div>
+        </div>
+      </div>
+      <div class="chat-bubble" id="q-bubble"></div>
+      <div class="question-label">Apa yang sebaiknya kamu lakukan?</div>
+      <div class="question-text" id="q-text"></div>
+      <div id="choices-container"></div>
+      <div class="feedback-box" id="feedback-box">
+        <div class="feedback-title" id="feedback-title"></div>
+        <div class="feedback-text" id="feedback-text"></div>
+      </div>
+      <button class="btn btn-primary" id="next-btn" style="display:none;margin-top:14px;" onclick="nextQuestion()">Lanjut →</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT SCREEN ===== -->
+  <div id="screen-result" class="screen card">
+    <span class="result-emoji" id="result-emoji">🏆</span>
+    <div class="result-title" id="result-title"></div>
+    <p style="text-align:center;color:var(--muted);font-size:0.92rem;margin-bottom:4px;" id="result-sub"></p>
+    <div class="stars" id="result-stars"></div>
+    <div class="result-score-box">
+      <span class="result-score-num" id="final-score">0</span>
+      <span class="result-score-label">poin terkumpul</span>
+    </div>
+    <div class="fact-strip" id="result-fact"></div>
+    <button class="btn btn-primary" onclick="restartGame()">Main Lagi! 🔄</button>
+    <div style="height:10px"></div>
+    <button class="btn btn-secondary" onclick="showTips()">Tips Keamanan 🔒</button>
+  </div>
+
+</div>
+
+<script>
+// ===== GAME DATA =====
+const chapters = [
+  {
+    badge: "Babak 1",
+    title: "Kenali Cyberbullying",
+    desc: "Cyberbullying adalah tindakan merundung, menghina, atau mengancam seseorang melalui internet. Di babak ini kamu akan belajar mengenali bentuk-bentuknya.",
+    icon: "🔍",
+    color: "var(--blue)"
+  },
+  {
+    badge: "Babak 2",
+    title: "Saat Kamu Jadi Korban",
+    desc: "Bayangkan kamu mengalami cyberbullying. Apa yang harus dilakukan? Di babak ini, pelajari cara melindungi dirimu dengan tepat.",
+    icon: "🛡️",
+    color: "var(--teal)"
+  },
+  {
+    badge: "Babak 3",
+    title: "Jadi Pahlawan Digital",
+    desc: "Kamu melihat temanmu di-bully online. Apa peranmu? Di babak terakhir ini, jadilah hero bagi orang-orang di sekitarmu!",
+    icon: "🦸",
+    color: "var(--purple)"
+  }
+];
+
+const questions = [
+  // === BABAK 1: Kenali Cyberbullying (Q1-3) ===
+  {
+    chapter: 0,
+    avatar: "🧒",
+    name: "Raka",
+    tag: "Cerita Raka",
+    tagType: "",
+    bubble: "Teman-teman kelas bikin grup WhatsApp rahasia dan mengejek penampilanku terus-terusan. Aku tidak diizinkan masuk grup itu, tapi aku tahu isinya.",
+    question: "Apa yang dialami Raka termasuk jenis cyberbullying apa?",
+    choices: [
+      { text: "🚫 Exclusion (pengucilan) – sengaja dikucilkan dari grup", correct: true },
+      { text: "😂 Candaan biasa antar teman", correct: false },
+      { text: "💬 Diskusi sehat tentang penampilan", correct: false },
+      { text: "📢 Gossip ringan yang tidak berbahaya", correct: false }
+    ],
+    feedbackCorrect: "✅ Benar! Ini disebut 'Exclusion' – sengaja mengucilkan seseorang dari grup online adalah bentuk cyberbullying yang nyata dan menyakitkan.",
+    feedbackWrong: "❌ Kurang tepat. Ini bukan candaan biasa. Dikucilkan dari grup secara sengaja sambil diejek disebut 'Exclusion' – salah satu bentuk cyberbullying."
+  },
+  {
+    chapter: 0,
+    avatar: "👧",
+    name: "Dinda",
+    tag: "DM dari Orang Asing",
+    tagType: "danger",
+    bubble: "Seseorang yang tidak aku kenal mengirim DM: 'Aku tahu kamu tinggal di mana. Lebih baik hapus postinganmu atau kamu akan menyesal.'",
+    question: "Pesan seperti ini disebut apa dalam konteks cyberbullying?",
+    choices: [
+      { text: "👀 Doxing – mengancam dengan informasi lokasi korban", correct: false },
+      { text: "⚠️ Cyberstalking & ancaman – melacak dan mengancam korban", correct: true },
+      { text: "😤 Flaming – pertengkaran online biasa", correct: false },
+      { text: "🎭 Impersonation – berpura-pura jadi orang lain", correct: false }
+    ],
+    feedbackCorrect: "✅ Tepat sekali! Pesan ini termasuk cyberstalking dan ancaman – pelaku mengawasi dan mengancam korban. Ini sangat serius dan bisa dilaporkan ke polisi!",
+    feedbackWrong: "❌ Tidak tepat. Pesan yang mengancam dengan menyebut lokasi korban termasuk cyberstalking dan ancaman – ini kejahatan yang bisa dilaporkan ke pihak berwajib."
+  },
+  {
+    chapter: 0,
+    avatar: "🧑",
+    name: "Bimo",
+    tag: "Postingan Instagram",
+    tagType: "warning",
+    bubble: "Ada yang membuat akun palsu menggunakan foto dan namaku, lalu memposting hal-hal memalukan seolah-olah itu aku.",
+    question: "Tindakan membuat akun palsu menggunakan identitas orang lain disebut?",
+    choices: [
+      { text: "🎭 Impersonation – mencuri identitas online orang lain", correct: true },
+      { text: "📰 Hoaks – menyebarkan berita bohong", correct: false },
+      { text: "💻 Hacking – meretas akun orang lain", correct: false },
+      { text: "📣 Flaming – provokasi di kolom komentar", correct: false }
+    ],
+    feedbackCorrect: "✅ Benar! 'Impersonation' adalah tindakan mencuri identitas online seseorang – ini termasuk tindakan kriminal dan bisa dilaporkan ke pihak berwenang.",
+    feedbackWrong: "❌ Kurang tepat. Membuat akun palsu menggunakan foto dan nama orang lain disebut 'Impersonation'. Ini bisa dilaporkan ke platform dan juga ke pihak berwajib."
+  },
+
+  // === BABAK 2: Saat Kamu Jadi Korban (Q4-6) ===
+  {
+    chapter: 1,
+    avatar: "😟",
+    name: "Kamu",
+    tag: "Situasimu",
+    tagType: "danger",
+    bubble: "Seseorang terus mengirim komentar jahat di setiap postingan Instagram-mu dan menghina penampilanmu. Kamu merasa tertekan setiap kali membuka HP.",
+    question: "Langkah pertama yang paling tepat untuk melindungi dirimu adalah?",
+    choices: [
+      { text: "🤐 Diam saja dan berharap pelaku bosan sendiri", correct: false },
+      { text: "🔥 Balas komentar mereka dengan lebih keras", correct: false },
+      { text: "🚫 Blokir akun pelaku dan laporkan ke platform", correct: true },
+      { text: "🗑️ Hapus akun media sosialmu selamanya", correct: false }
+    ],
+    feedbackCorrect: "✅ Tepat! Memblokir dan melaporkan pelaku adalah langkah paling efektif. Platform akan meninjau laporan dan bisa menghapus akun pelaku. Kamu punya hak untuk itu!",
+    feedbackWrong: "❌ Tidak disarankan. Diam membiarkan, membalas dengan marah, atau menghapus akunmu sendiri bukan solusi terbaik. Blokir dan laporkan pelaku ke platform!"
+  },
+  {
+    chapter: 1,
+    avatar: "😣",
+    name: "Kamu",
+    tag: "Situasimu",
+    tagType: "danger",
+    bubble: "Seseorang menyebarkan foto lama yang kamu posting dulu dan mengeditnya menjadi memalukan, lalu dibagikan ke banyak teman sekolah.",
+    question: "Selain memblokir pelaku, apa yang sebaiknya kamu lakukan selanjutnya?",
+    choices: [
+      { text: "😭 Menangis sendiri di kamar dan tidak bilang siapa-siapa", correct: false },
+      { text: "📸 Screenshot bukti, lalu ceritakan kepada orang tua atau guru", correct: true },
+      { text: "🗡️ Cari cara untuk membalas perbuatan pelaku", correct: false },
+      { text: "🏠 Tidak masuk sekolah sampai situasi mereda", correct: false }
+    ],
+    feedbackCorrect: "✅ Sangat bijak! Simpan bukti (screenshot) dan ceritakan kepada orang dewasa yang dipercaya. Kamu tidak harus menanggungnya sendiri – minta bantuan adalah tanda keberanian, bukan kelemahan!",
+    feedbackWrong: "❌ Ini bukan pilihan terbaik. Menyimpan perasaan sendiri, membalas pelaku, atau menghindari sekolah tidak akan menyelesaikan masalah. Ceritakan kepada orang tua atau guru, dan simpan buktinya."
+  },
+  {
+    chapter: 1,
+    avatar: "💙",
+    name: "Kamu",
+    tag: "Perasaanmu",
+    tagType: "",
+    bubble: "Karena terus-terusan di-bully online, kamu mulai merasa tidak berharga, malas bersosialisasi, dan tidak mau keluar rumah.",
+    question: "Perubahan perilaku seperti ini adalah tanda apa?",
+    choices: [
+      { text: "😐 Hal yang wajar dan akan hilang sendiri", correct: false },
+      { text: "🧠 Dampak psikologis cyberbullying – kamu perlu bantuan profesional", correct: true },
+      { text: "😤 Kamu terlalu sensitif dan lebay", correct: false },
+      { text: "😴 Kamu hanya kelelahan dan kurang istirahat", correct: false }
+    ],
+    feedbackCorrect: "✅ Kamu benar! Perasaan tidak berharga, menarik diri dari sosial, dan depresi adalah dampak psikologis serius dari cyberbullying. Sangat penting untuk berbicara dengan konselor atau psikolog – dan itu bukan tanda kelemahan!",
+    feedbackWrong: "❌ Perubahan ini bukan hal sepele. Dampak psikologis cyberbullying nyata dan serius – termasuk depresi dan gangguan kecemasan. Jangan ragu untuk mencari bantuan dari konselor atau psikolog."
+  },
+
+  // === BABAK 3: Jadi Pahlawan Digital (Q7-9) ===
+  {
+    chapter: 2,
+    avatar: "👫",
+    name: "Situasi Temanmu",
+    tag: "Kamu Saksi Mata",
+    tagType: "warning",
+    bubble: "Kamu melihat teman sekelasmu di-tag dalam komentar buruk dan diejek tentang berat badannya oleh banyak akun di TikTok.",
+    question: "Sebagai teman yang peduli, apa yang bisa kamu lakukan?",
+    choices: [
+      { text: "👍 Like dan share postingan itu supaya temanmu tahu betapa viralnya", correct: false },
+      { text: "😶 Scroll past saja, itu bukan urusanmu", correct: false },
+      { text: "💬 Hubungi temanmu secara pribadi, tawarkan dukungan, dan bantu laporkan komentar jahat itu", correct: true },
+      { text: "📢 Komentari balasan keras di postingan itu untuk membela temanmu", correct: false }
+    ],
+    feedbackCorrect: "✅ Ini yang terbaik! Menghubungi temanmu secara pribadi memberinya rasa aman. Membantunya melaporkan konten jahat adalah tindakan nyata seorang pahlawan digital. Kamu luar biasa!",
+    feedbackWrong: "❌ Hati-hati dengan pilihanmu. Menyebarkan atau mengabaikan akan memperparah situasi. Membalas dengan keras bisa memicu konflik baru. Cara terbaik adalah support temanmu secara pribadi dan bantu laporkan."
+  },
+  {
+    chapter: 2,
+    avatar: "🧑‍💻",
+    name: "Di Grup Kelasmu",
+    tag: "Grup WhatsApp",
+    tagType: "warning",
+    bubble: "Di grup WhatsApp kelas, teman-teman mulai mengirim meme mengejek salah satu teman yang jarang hadir. Banyak yang ikut tertawa dan memforwardnya.",
+    question: "Apa peran terbaik yang bisa kamu ambil dalam situasi ini?",
+    choices: [
+      { text: "😂 Ikut tertawa dan forward meme itu, semua orang melakukannya", correct: false },
+      { text: "✋ Minta teman-teman berhenti dan ingatkan bahwa itu menyakitkan", correct: true },
+      { text: "🔇 Keluar dari grup diam-diam tanpa berkata apa-apa", correct: false },
+      { text: "📵 Matikan notifikasi dan pura-pura tidak lihat", correct: false }
+    ],
+    feedbackCorrect: "✅ Kamu adalah pahlawan sejati! Berani menegur di tengah kerumunan itu susah, tapi itulah yang membuat perbedaan nyata. Satu suara bisa mengubah dinamika grup dan melindungi korban.",
+    feedbackWrong: "❌ Ikut-ikutan atau diam adalah bagian dari masalah. Sebagai bystander (saksi), kamu punya kekuatan untuk menghentikan cyberbullying. Berani menegur adalah tindakan yang tepat!"
+  },
+  {
+    chapter: 2,
+    avatar: "🌟",
+    name: "Aksi Positifmu",
+    tag: "Langkah Mulia",
+    tagType: "",
+    bubble: "Kamu ingin membuat perbedaan nyata dan membantu lingkungan sekitarmu lebih aman dari cyberbullying.",
+    question: "Manakah langkah paling berdampak yang bisa kamu ambil?",
+    choices: [
+      { text: "📢 Bagikan informasi tentang cyberbullying dan cara melaporkannya kepada teman-temanmu", correct: true },
+      { text: "🏆 Posting quote anti-bullying sekali, lalu lupa", correct: false },
+      { text: "🙈 Fokus melindungi dirimu sendiri saja", correct: false },
+      { text: "💤 Tunggu orang lain atau pemerintah yang bertindak", correct: false }
+    ],
+    feedbackCorrect: "🌟 SEMPURNA! Berbagi pengetahuan adalah cara paling ampuh untuk menciptakan perubahan. Setiap orang yang kamu edukasi bisa menjadi pelindung bagi orang lain. Kamu adalah PAHLAWAN DIGITAL sejati!",
+    feedbackWrong: "❌ Perubahan nyata butuh tindakan konsisten. Berbagi informasi dan edukasi kepada teman-temanmu tentang cyberbullying adalah cara paling berdampak untuk membuat dunia digital lebih aman."
+  }
+];
+
+// ===== GAME STATE =====
+let state = {
+  currentQ: 0,
+  score: 0,
+  hearts: 3,
+  answered: false,
+  currentChapter: -1
+};
+
+// ===== HELPER =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showTips() { showScreen('screen-tips'); }
+
+function updateHUD() {
+  const hearts = '♥'.repeat(Math.max(0, state.hearts)) + '♡'.repeat(Math.max(0, 3 - state.hearts));
+  document.getElementById('hud-hearts').textContent = hearts;
+  document.getElementById('hud-score').textContent = state.score;
+  document.getElementById('hud-stage').textContent = `${state.currentQ + 1}/${questions.length}`;
+  const pct = (state.currentQ / questions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+// ===== GAME FLOW =====
+function startGame() {
+  state = { currentQ: 0, score: 0, hearts: 3, answered: false, currentChapter: -1 };
+  showChapterIntro(0);
+}
+
+function showChapterIntro(chapterIndex) {
+  const ch = chapters[chapterIndex];
+  state.currentChapter = chapterIndex;
+  document.getElementById('chapter-content').innerHTML = `
+    <div class="chapter-icon">${ch.icon}</div>
+    <div class="chapter-badge">${ch.badge} dari 3</div>
+    <div class="chapter-title">${ch.title}</div>
+    <p class="chapter-desc">${ch.desc}</p>
+  `;
+  document.getElementById('chapter-btn').onclick = () => {
+    showScreen('screen-question');
+    showQuestion();
+  };
+  showScreen('screen-chapter');
+}
+
+function showQuestion() {
+  const q = questions[state.currentQ];
+  updateHUD();
+
+  // Avatar
+  document.getElementById('q-avatar').textContent = q.avatar;
+  document.getElementById('q-name').textContent = q.name;
+  const tag = document.getElementById('q-tag');
+  tag.textContent = q.tag;
+  tag.className = 'scenario-tag' + (q.tagType ? ' ' + q.tagType : '');
+
+  // Bubble
+  const bubble = document.getElementById('q-bubble');
+  bubble.textContent = q.bubble;
+  bubble.className = 'chat-bubble' + (q.tagType === 'danger' ? ' bad' : '');
+
+  document.getElementById('q-text').textContent = q.question;
+
+  // Choices
+  const container = document.getElementById('choices-container');
+  container.innerHTML = '';
+  q.choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-choice';
+    btn.textContent = c.text;
+    btn.onclick = () => handleAnswer(i, c.correct);
+    container.appendChild(btn);
+  });
+
+  // Reset feedback
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  document.getElementById('next-btn').style.display = 'none';
+  state.answered = false;
+}
+
+function handleAnswer(idx, isCorrect) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const btns = document.querySelectorAll('.btn-choice');
+  btns.forEach((b, i) => {
+    b.classList.add('disabled');
+    if (questions[state.currentQ].choices[i].correct) b.classList.add('correct');
+  });
+  btns[idx].classList.add(isCorrect ? 'correct' : 'wrong');
+
+  const q = questions[state.currentQ];
+  const fb = document.getElementById('feedback-box');
+  const title = document.getElementById('feedback-title');
+  const text = document.getElementById('feedback-text');
+
+  if (isCorrect) {
+    fb.className = 'feedback-box correct show';
+    title.className = 'feedback-title correct';
+    title.textContent = '🎉 Jawaban Benar!';
+    text.textContent = q.feedbackCorrect;
+    state.score += 100;
+  } else {
+    fb.className = 'feedback-box wrong show';
+    title.className = 'feedback-title wrong';
+    title.textContent = '💡 Belum Tepat';
+    text.textContent = q.feedbackWrong;
+    state.hearts = Math.max(0, state.hearts - 1);
+  }
+
+  updateHUD();
+  document.getElementById('next-btn').style.display = 'block';
+}
+
+function nextQuestion() {
+  state.currentQ++;
+
+  if (state.currentQ >= questions.length) {
+    showResult();
+    return;
+  }
+
+  const q = questions[state.currentQ];
+  const prevQ = questions[state.currentQ - 1];
+
+  // Show chapter intro if new chapter
+  if (q.chapter !== prevQ.chapter) {
+    showChapterIntro(q.chapter);
+  } else {
+    showQuestion();
+  }
+}
+
+function showResult() {
+  const pct = state.score / (questions.length * 100);
+  let emoji, title, sub, stars;
+
+  if (pct >= 0.85) {
+    emoji = '🏆'; title = 'Pahlawan Digital!'; stars = '⭐⭐⭐';
+    sub = 'Luar biasa! Kamu sudah sangat siap melindungi dirimu dan orang lain di dunia digital.';
+  } else if (pct >= 0.55) {
+    emoji = '🛡️'; title = 'Pembela Tangguh!'; stars = '⭐⭐☆';
+    sub = 'Bagus! Kamu sudah memahami banyak hal tentang keamanan online. Terus belajar!';
+  } else {
+    emoji = '📚'; title = 'Pelajar Berani!'; stars = '⭐☆☆';
+    sub = 'Kamu sudah berani mencoba! Baca tips keamanan dan coba lagi untuk menjadi lebih siap.';
+  }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = sub;
+  document.getElementById('result-stars').textContent = stars;
+  document.getElementById('final-score').textContent = state.score;
+
+  const facts = [
+    "💡 Fakta: Remaja berusia 18–34 tahun adalah kelompok yang paling rentan menjadi korban cyberbullying di Indonesia.",
+    "💡 Fakta: Di Indonesia, lebih dari 3.800 kasus cyberbullying dilaporkan pada tahun 2023 – angka tertinggi sepanjang sejarah.",
+    "💡 Fakta: TikTok dan Instagram adalah platform yang paling sering digunakan untuk melakukan cyberbullying.",
+    "💡 Fakta: Cyberbullying bisa menyebabkan depresi, kecemasan, dan dalam kasus ekstrem – pikiran untuk mengakhiri hidup. Minta bantuan adalah hal yang benar untuk dilakukan."
+  ];
+  document.getElementById('result-fact').textContent = facts[Math.floor(Math.random() * facts.length)];
+
+  // Animate progress bar to 100%
+  document.getElementById('progress-fill') && (document.getElementById('progress-fill').style.width = '100%');
+
+  showScreen('screen-result');
+}
+
+function restartGame() { startGame(); }
+</script>
+</body>
+</html>
